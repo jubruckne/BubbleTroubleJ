@@ -47,6 +47,14 @@ public class Entity {
         return new Point(this.body.getPosition());
     }
 
+    public Point getPosition_div_10() {
+        Vector2 pos = this.body.getPosition();
+        return new Point(
+            pos.x / 10,
+            pos.y / 10
+        );
+    }
+
     public float getX() {
         return body.getPosition().x;
     }

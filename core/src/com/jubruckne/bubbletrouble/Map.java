@@ -13,6 +13,8 @@ import com.badlogic.gdx.utils.Array;
 public class Map {
     public World world;
     public Game game;
+    private int path_idx = 0;
+    private int frame = 0;
 
     public final int width;
     public final int height;
@@ -23,14 +25,14 @@ public class Map {
 
     private Sprite background;
 
-    private AStar a_star_pathfinder;
+    private Pathfinder pathfinder;
 
     public Map(final Game game) {
         this.game = game;
         this.width = 300;
         this.height = 200;
 
-        a_star_pathfinder = new AStar(width / 10, height / 10);
+        pathfinder = new Pathfinder(this);
 
         world = new World(new Vector2(0, 0), false);
 
@@ -47,24 +49,8 @@ public class Map {
         );
 
         targets.add(
-                new Target(this, 180, 120)
+                new Target(this, 290, 120)
         );
-    }
-
-    public AStar pathfinder() {
-        for(Tower t: towers) {
-            Point pos = t.getPosition();
-            Gdx.app.log("Tower", pos.toString());
-            AStar.Node node = a_star_pathfinder.map.getNodeAt(
-                    pos.x_div_10(),
-                    pos.y_div_10()
-            );
-            node.isWall = true;
-        }
-
-        a_star_pathfinder.run();
-
-        return this.a_star_pathfinder;
     }
 
     public void draw_background(SpriteBatch batch) {
@@ -74,6 +60,8 @@ public class Map {
     }
 
     public void draw(SpriteBatch batch, Vector2 mouse_pos, ShapeRenderer shapeRenderer) {
+        frame++;
+
         batch.begin();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.DARK_GRAY);
@@ -111,9 +99,17 @@ public class Map {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.YELLOW);
 
-        Array<Point> path = this.pathfinder().getPath(enemies.first().getPosition(), targets.first().getPosition());
-        for (Point p: path) {
-            shapeRenderer.circle(p.x * 10 + 5, p.y * 10 + 5, 1f);
+        pathfinder.recalc();
+
+        Array<Point> path = this.pathfinder.getPath(enemies.first().getPosition(), targets.first().getPosition());
+        // pathfinder.draw(batch);
+
+        if (path_idx >= path.size + 10) path_idx = -10;
+        if (frame % 6 == 0) path_idx++;
+
+        for (int p = 0; p < path.size; p++) {
+            shapeRenderer.circle(path.get(p).x * 10 + 5, path.get(p).y * 10 + 5, Math.max(0.75f, (8f - Math.abs(path_idx - p)) * 0.10f + 0.75f));
+            // Gdx.app.log("path_idx", String.valueOf(path_idx) + "_" + String.valueOf(p));
         }
         shapeRenderer.end();
         batch.end();
