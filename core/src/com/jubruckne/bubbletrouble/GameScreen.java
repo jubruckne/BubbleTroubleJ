@@ -7,12 +7,13 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class GameScreen implements Screen {
     final Game game;
+    private Box2DDebugRenderer b2dr= new Box2DDebugRenderer();
 
     private SpriteBatch batch;
     private SpriteBatch batch_ui;
@@ -74,12 +75,15 @@ public class GameScreen implements Screen {
 
         // first draw the background (everything in screen coordinates)
         batch_ui.begin();
-        font.draw(batch_ui, String.format("Screen: (%s)", get_mouse_pos_local()), 10, 589);
-        font.draw(batch_ui, String.format("World:  (%s)", get_mouse_pos_world()), 10, 570);
-        font.draw(batch_ui, String.format("Game:   (%s)", get_mouse_pos_game()), 10, 551);
+        font.draw(batch_ui, String.format("Screen: %s", get_mouse_pos_local()), 10, 589);
+        font.draw(batch_ui, String.format("World:  %s", get_mouse_pos_world()), 10, 570);
+        font.draw(batch_ui, String.format("Game:   %s", get_mouse_pos_game()), 10, 551);
         batch_ui.end();
 
-        GoButton.draw(batch_ui);
+        GoButton.draw(batch_ui, shapeRenderer);
+
+        b2dr.render(map.world, camera.combined);
+
     }
 
     public Point get_mouse_pos_game() {
@@ -102,10 +106,17 @@ public class GameScreen implements Screen {
 
     public boolean touchDown(int screenX, int screenY, int button) {
         if (button == Input.Buttons.LEFT) {
+            if(GoButton.get_bounds().contains(get_mouse_pos_local())) {
+                map.start_wave();
+                Gdx.app.log("Wave", "starting...");
+                return true;
+            }
+
             map.towers.add(new Tower(map, get_mouse_pos_game()));
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     @Override
@@ -150,6 +161,16 @@ public class GameScreen implements Screen {
             );
         }
         for (Entity e : this.map.enemies) {
+            e.highlight(
+                    e.get_bounds().contains(get_mouse_pos_world())
+            );
+        }
+        for (Entity e : this.map.sources) {
+            e.highlight(
+                    e.get_bounds().contains(get_mouse_pos_world())
+            );
+        }
+        for (Entity e : this.map.targets) {
             e.highlight(
                     e.get_bounds().contains(get_mouse_pos_world())
             );

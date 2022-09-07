@@ -1,6 +1,5 @@
 package com.jubruckne.bubbletrouble;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -11,7 +10,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.Null;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class Button extends Entity {
@@ -70,7 +68,7 @@ public class Button extends Entity {
         this.texture = tr;
     }
 
-    public void draw(SpriteBatch batch) {
+    public void draw(SpriteBatch batch, ShapeRenderer shapeRenderer) {
         batch.enableBlending();
 
         if(texture == null) {
@@ -79,7 +77,7 @@ public class Button extends Entity {
 
         batch.begin();
         if(highlight) { batch.setColor(Color.YELLOW); }
-        batch.draw(texture, body.getPosition().x, body.getPosition().y, width, height);
+        batch.draw(texture, body.getPosition().x - width / 2, body.getPosition().y - height / 2, width, height);
         batch.setColor(Color.WHITE);
         batch.end();
     }

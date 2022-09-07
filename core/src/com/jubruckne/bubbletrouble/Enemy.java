@@ -1,27 +1,72 @@
 package com.jubruckne.bubbletrouble;
-
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.utils.Array;
 
 public class Enemy extends Entity {
     public Enemy(Map map, float x, float y) {
-        super(map, x, y, 10, 10);
+        super(map, x, y, 10, 10, Color.RED);
         texture = map.game.Sprites.Tower();
+        body.setType(BodyDef.BodyType.DynamicBody);
     }
 
     public Enemy(Map map, Point position) {
-        super(map, position.x, position.y, 10, 10);
-        texture = map.game.Sprites.Tower();
+        this(map, position.x, position.y);
     }
 
     @Override
     public void draw(SpriteBatch batch) {
-        if(highlight)
-            batch.setColor(Color.YELLOW);
-        else
-            batch.setColor(Color.RED);
+        Point next = map.pathfinder.getNext(this.getPosition(), map.targets.first().getPosition());
+        // Gdx.app.log("Draw", "current position:" + this.getPosition().toString());
+        // Gdx.app.log("Draw", String.format("next    position: (%.0f, %.0f)", next.x * 10, next.y * 10));
 
-        batch.draw(texture, body.getPosition().x, body.getPosition().y, width, height);
-        batch.setColor(Color.WHITE);
+        body.setLinearVelocity(
+                map.pathfinder.getDirection(this.getPosition(), map.targets.first().getPosition()).scl(10)
+        );
+
+        if(hitpoints < max_hitpoints) {
+            batch.end();
+            batch.begin();
+
+            map.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            map.shapeRenderer.arc(getCenter().x, getCenter().y, 5.1f, 0.0f, this.hitpoints / this.max_hitpoints * 360, 20);
+            map.shapeRenderer.end();
+
+            batch.end();
+            batch.begin();
+        }
+
+        super.draw(batch);
+
+        batch.end();
+        batch.begin();
+        map.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        map.shapeRenderer.setColor(Color.ORANGE);
+
+        Array<Point> path = map.pathfinder.getPath(this.getCenter(), map.targets.first().getCenter());
+
+        for (int p = 0; p < path.size; p++) {
+            map.shapeRenderer.circle(
+                    path.get(p).x * 10 + 5,
+                    path.get(p).y * 10 + 5,
+                    1.5f);
+        }
+        map.shapeRenderer.end();
+        batch.end();
+        batch.begin();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Enemy pos=(%s, %s)", this.getX(), this.getY());
+    }
+
+    public void kill() {
+        this.world.destroyBody(this.body);
+        this.body = null;
+
     }
 }

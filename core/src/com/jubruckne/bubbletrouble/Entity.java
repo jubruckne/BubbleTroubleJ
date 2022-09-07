@@ -1,9 +1,8 @@
 package com.jubruckne.bubbletrouble;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -11,44 +10,74 @@ import com.badlogic.gdx.physics.box2d.*;
 public class Entity {
     protected float width;
     protected float height;
+    protected float hitpoints = 100;
+    protected float max_hitpoints = 100;
 
-    private final Map map;
-    private final World world;
-    protected final Body body;
+    protected final Map map;
+    protected final World world;
+    protected Body body;
     protected TextureRegion texture;
+    protected Color color;
 
     protected boolean selected = false;
     protected boolean highlight = false;
 
-    public Entity(final Map map, float center_x, float center_y, float width, float height) {
+    public Entity(final Map map, float x, float y, float width, float height) {
+        this(map, x, y, width, height, Color.WHITE);
+    }
+
+    public Entity(final Map map, float x, float y, float width, float height, Color color) {
         this.map = map;
         this.world = map.world;
         this.width = width;
         this.height = height;
+        this.color = color;
 
         BodyDef def = new BodyDef();
-        def.position.set(center_x, center_y);
-        def.type = BodyDef.BodyType.KinematicBody;
+        def.position.set(x + width / 2, y + height / 2);
+        def.type = BodyDef.BodyType.StaticBody;
         def.fixedRotation = true;
         body = world.createBody(def);
 
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(width, height);
+        CircleShape circle = new CircleShape();
+        circle.setRadius(height / 5);
+        // PolygonShape shape = new PolygonShape();
+        // shape.setAsBox(width / 2 - 1, height / 2 - 1);
 
         FixtureDef fix = new FixtureDef();
-        fix.shape = shape;
+        fix.shape = circle;
         fix.density = 1f;
-        body.createFixture(shape, 1f);
+        body.createFixture(circle, 1f);
 
-        shape.dispose();
+        //shape.dispose();
+        circle.dispose();
+    }
+
+    public float apply_damage(float dmg) {
+        hitpoints -= dmg * 0.1f;
+        return hitpoints;
+    }
+
+    public float distance_to(Point point) {
+        return this.getPosition().dst(point);
+    }
+
+    public float distance_to(Entity entity) {
+        return this.getPosition().dst(entity.getPosition());
     }
 
     public Point getPosition() {
-        return new Point(this.body.getPosition());
+        return new Point(
+                this.body.getPosition().x - width / 2, body.getPosition().y - height / 2
+        );
+    }
+
+    public Point getCenter() {
+        return new Point(body.getPosition());
     }
 
     public Point getPosition_div_10() {
-        Vector2 pos = this.body.getPosition();
+        Vector2 pos = this.getPosition();
         return new Point(
             pos.x / 10,
             pos.y / 10
@@ -56,20 +85,30 @@ public class Entity {
     }
 
     public float getX() {
-        return body.getPosition().x;
+        return getPosition().x;
     }
 
     public float getY() {
-        return body.getPosition().y;
+        return getPosition().y;
     }
 
     public Rectangle get_bounds() {
-        return new Rectangle((int)body.getPosition().x, (int)body.getPosition().y, (int) width, (int) height);
+        return new Rectangle(
+                (int)body.getPosition().x - width / 2,
+                (int)body.getPosition().y - height / 2,
+                (int) width,
+                (int) height
+        );
     }
 
     public void draw(SpriteBatch batch) {
-        if(highlight) { batch.setColor(Color.YELLOW); };
-        batch.draw(texture, body.getPosition().x, body.getPosition().y, width, height);
+        // Gdx.app.log("Enemy", this.toString());
+        if (highlight)
+            batch.setColor(Color.YELLOW);
+        else
+            batch.setColor(this.color);
+
+        batch.draw(texture, body.getPosition().x - width / 2, body.getPosition().y - height / 2, width, height);
         batch.setColor(Color.WHITE);
     }
 
