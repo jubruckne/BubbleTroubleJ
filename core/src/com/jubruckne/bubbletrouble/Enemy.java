@@ -11,6 +11,7 @@ public class Enemy extends Entity {
         super(map, x, y, 10, 10, Color.RED);
         texture = map.game.Sprites.Tower();
         body.setType(BodyDef.BodyType.DynamicBody);
+        debug = true;
     }
 
     public Enemy(Map map, Point position) {
@@ -19,12 +20,15 @@ public class Enemy extends Entity {
 
     @Override
     public void draw(SpriteBatch batch) {
-        Point next = map.pathfinder.getNext(this.getPosition(), map.targets.first().getPosition());
+        // Point next = map.pathfinder.getNext(this.getPosition(), map.targets.first().getPosition());
         // Gdx.app.log("Draw", "current position:" + this.getPosition().toString());
         // Gdx.app.log("Draw", String.format("next    position: (%.0f, %.0f)", next.x * 10, next.y * 10));
 
         body.setLinearVelocity(
-                map.pathfinder.getDirection(this.getPosition(), map.targets.first().getPosition()).scl(10)
+                map.pathfinder.getDirection(
+                        getPosition().add(-5f, -5f),
+                        map.targets.first().getPosition()
+                ).scl(10)
         );
 
         if(hitpoints < max_hitpoints) {
@@ -32,7 +36,7 @@ public class Enemy extends Entity {
             batch.begin();
 
             map.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            map.shapeRenderer.arc(getCenter().x, getCenter().y, 5.1f, 0.0f, this.hitpoints / this.max_hitpoints * 360, 20);
+            map.shapeRenderer.arc(getPosition().x, getPosition().y, 5.1f, 0.0f, this.hitpoints / this.max_hitpoints * 360, 20);
             map.shapeRenderer.end();
 
             batch.end();
@@ -46,7 +50,7 @@ public class Enemy extends Entity {
         map.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         map.shapeRenderer.setColor(Color.ORANGE);
 
-        Array<Point> path = map.pathfinder.getPath(this.getCenter(), map.targets.first().getCenter());
+        Array<Point> path = map.pathfinder.getPath(this.getPosition(), map.targets.first().getPosition());
 
         for (int p = 0; p < path.size; p++) {
             map.shapeRenderer.circle(
@@ -54,19 +58,14 @@ public class Enemy extends Entity {
                     path.get(p).y * 10 + 5,
                     1.5f);
         }
+
         map.shapeRenderer.end();
         batch.end();
         batch.begin();
     }
 
-    @Override
-    public String toString() {
-        return String.format("Enemy pos=(%s, %s)", this.getX(), this.getY());
-    }
-
     public void kill() {
         this.world.destroyBody(this.body);
         this.body = null;
-
     }
 }

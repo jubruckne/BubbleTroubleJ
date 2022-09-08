@@ -32,10 +32,9 @@ public class GameScreen implements Screen {
 
     public GameScreen(final Game game) {
         this.game = game;
-
         font = new BitmapFont();
 
-        map = new Map(game);
+        map = new Map(game, font);
 
         // World Space
         batch = new SpriteBatch();
@@ -75,9 +74,10 @@ public class GameScreen implements Screen {
 
         // first draw the background (everything in screen coordinates)
         batch_ui.begin();
-        font.draw(batch_ui, String.format("Screen: %s", get_mouse_pos_local()), 10, 589);
-        font.draw(batch_ui, String.format("World:  %s", get_mouse_pos_world()), 10, 570);
-        font.draw(batch_ui, String.format("Game:   %s", get_mouse_pos_game()), 10, 551);
+        map.font.getData().setScale(1f);
+        font.draw(batch_ui, Utils.format("Screen: %.0f", get_mouse_pos_local()), 10, 589);
+        font.draw(batch_ui, Utils.format("World:  %.0f", get_mouse_pos_world()), 10, 570);
+        font.draw(batch_ui, Utils.format("Game:   %.0f", get_mouse_pos_game()), 10, 551);
         batch_ui.end();
 
         GoButton.draw(batch_ui, shapeRenderer);
@@ -112,7 +112,7 @@ public class GameScreen implements Screen {
                 return true;
             }
 
-            map.towers.add(new Tower(map, get_mouse_pos_game()));
+            map.towers.add(new Tower(map, get_mouse_pos_game().add(5f, 5f)));
             return true;
         }
 

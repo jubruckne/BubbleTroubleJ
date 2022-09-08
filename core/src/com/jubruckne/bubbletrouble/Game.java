@@ -1,11 +1,10 @@
 package com.jubruckne.bubbletrouble;
 
 import com.badlogic.gdx.*;
-import com.badlogic.gdx.physics.box2d.World;
 
 public class Game extends com.badlogic.gdx.Game implements ApplicationListener, InputProcessor {
     public SpriteSheet Sprites;
-    public World world;
+    private boolean paused = false;
 
     @Override
     public void create() {
@@ -21,6 +20,10 @@ public class Game extends com.badlogic.gdx.Game implements ApplicationListener, 
         super.render();
     }
 
+    public boolean isPaused() {
+        return paused;
+    }
+
     public void dispose() {
         Sprites.dispose();
     }
@@ -29,6 +32,8 @@ public class Game extends com.badlogic.gdx.Game implements ApplicationListener, 
     public boolean keyDown(int keycode) {
         if(keycode == Input.Keys.ESCAPE) {
             Gdx.app.exit();
+        } else if(keycode == Input.Keys.P) {
+            pause();
         }
 
         return false;
@@ -52,6 +57,18 @@ public class Game extends com.badlogic.gdx.Game implements ApplicationListener, 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         return false;
+    }
+
+    @Override
+    public void pause() {
+        this.paused = true;
+        super.pause();
+    }
+
+    @Override
+    public void resume() {
+        this.paused = false;
+        super.resume();
     }
 
     @Override

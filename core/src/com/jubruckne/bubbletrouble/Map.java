@@ -3,6 +3,7 @@ package com.jubruckne.bubbletrouble;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.utils.Array;
 
 public class Map {
     private static final float STEP_TIME = 1f/60f;
+    protected final BitmapFont font;
     private float step_accumulator = 0;
     public ShapeRenderer shapeRenderer;
 
@@ -32,12 +34,13 @@ public class Map {
 
     public Pathfinder pathfinder;
 
-    public Map(final Game game) {
+    public Map(final Game game, BitmapFont font) {
         this.game = game;
         this.width = 300;
         this.height = 200;
+        this.font = font;
 
-        pathfinder = new Pathfinder(this);
+        pathfinder = new Pathfinder(this, 30, 20);
 
         world = new World(new Vector2(0, 0), false);
 
@@ -51,25 +54,16 @@ public class Map {
         sources = new Array<>();
 
         sources.add(
-                new Source(this, 0, 0)
+                new Source(this, 5, 9)
         );
 
         targets.add(
-                new Target(this, 290, 190)
+                new Target(this, 295, 195)
         );
 
         towers.add(
-                new Tower(this, 10, 10)
+                new Tower(this, 75, 5)
         );
-        towers.add(
-                new Tower(this, 20, 10)
-        );
-        towers.add(
-                new Tower(this, 30, 10)
-        );
-
-
-
     }
 
     public Enemy get_nearest_enemy(Point position) {
@@ -109,7 +103,8 @@ public class Map {
 
         this.shapeRenderer = shapeRenderer;
 
-        stepWorld();
+        if(!game.isPaused())
+            stepWorld();
 
         batch.begin();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
@@ -146,6 +141,7 @@ public class Map {
             shapeRenderer.circle(path.get(p).x * 10 + 5, path.get(p).y * 10 + 5, Math.max(0.75f, (8f - Math.abs(path_idx - p)) * 0.11f + 0.75f));
             // Gdx.app.log("path_idx", String.valueOf(path_idx) + "_" + String.valueOf(p));
         }
+
         shapeRenderer.end();
         batch.end();
 
@@ -164,8 +160,7 @@ public class Map {
         }
         batch.end();
 
-        // pathfinder.draw(batch);
-
+        //pathfinder.draw(batch);
     }
 
     public void dispose() {

@@ -45,20 +45,26 @@ public class Point extends Vector2 {
         return new Rectangle(this.x, this.y, width, height);
     }
 
-    public int x_div_10() {
-        return (int) Math.floor(this.x / 10);
-    }
-
-    public int y_div_10() {
-        return (int) Math.floor(this.y / 10);
+    @Override
+    public Point add(float x, float y) {
+        super.add(x, y);
+        return this;
     }
 
     @Override
     public String toString() {
-        return String.format("(%.0f, %.0f)", this.x, this.y);
+        return Utils.format("(%.0f, %.0f)", this.x, this.y);
     }
 
     public String toString(String format) {
-        return String.format("(%" + format +", %" + format + ")", this.x, this.y);
+        return Utils.format("(%" + format +", %" + format + ")", this.x, this.y);
+    }
+
+    public int x_int() {
+        return (int)x;
+    }
+
+    public int y_int() {
+        return (int)y;
     }
 }

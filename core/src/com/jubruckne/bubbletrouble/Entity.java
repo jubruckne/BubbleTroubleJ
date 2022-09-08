@@ -1,4 +1,5 @@
 package com.jubruckne.bubbletrouble;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -18,6 +19,7 @@ public class Entity {
     protected Body body;
     protected TextureRegion texture;
     protected Color color;
+    protected boolean debug = false;
 
     protected boolean selected = false;
     protected boolean highlight = false;
@@ -34,13 +36,13 @@ public class Entity {
         this.color = color;
 
         BodyDef def = new BodyDef();
-        def.position.set(x + width / 2, y + height / 2);
+        def.position.set(x, y);
         def.type = BodyDef.BodyType.StaticBody;
         def.fixedRotation = true;
         body = world.createBody(def);
 
         CircleShape circle = new CircleShape();
-        circle.setRadius(height / 5);
+        circle.setRadius(height / 2.5f);
         // PolygonShape shape = new PolygonShape();
         // shape.setAsBox(width / 2 - 1, height / 2 - 1);
 
@@ -68,19 +70,7 @@ public class Entity {
 
     public Point getPosition() {
         return new Point(
-                this.body.getPosition().x - width / 2, body.getPosition().y - height / 2
-        );
-    }
-
-    public Point getCenter() {
-        return new Point(body.getPosition());
-    }
-
-    public Point getPosition_div_10() {
-        Vector2 pos = this.getPosition();
-        return new Point(
-            pos.x / 10,
-            pos.y / 10
+                this.body.getPosition().x, body.getPosition().y
         );
     }
 
@@ -109,7 +99,10 @@ public class Entity {
             batch.setColor(this.color);
 
         batch.draw(texture, body.getPosition().x - width / 2, body.getPosition().y - height / 2, width, height);
+
         batch.setColor(Color.WHITE);
+        map.font.getData().setScale(0.25f);
+        map.font.draw(batch, toString(), getX(), getY() + height + 5);
     }
 
     public void highlight(final boolean highlight) {
@@ -134,5 +127,10 @@ public class Entity {
 
     public void select(final boolean selected) {
         this.selected = selected;
+    }
+
+    @Override
+    public String toString() {
+        return Utils.format("%s %f", getClass().getSimpleName(), getPosition());
     }
 }

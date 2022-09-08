@@ -6,18 +6,22 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-import java.util.Arrays;
-
 public class Pathfinder {
     private final Map map;
     private int[] cells;
     private final int width;
     private final int height;
+    private final int scale;
 
     public Pathfinder(Map map) {
+        this(map, map.width, map.height);
+    }
+
+    public Pathfinder(Map map, int width, int height) {
         this.map = map;
-        width = map.width / 10;
-        height = map.height / 10;
+        this.width = width;
+        this.height = height;
+        this.scale = map.width / width;
     }
 
     public void draw(SpriteBatch batch) {
@@ -29,10 +33,14 @@ public class Pathfinder {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int cost = cells[x * height + y];
-                font.draw(batch, String.format("%s", cost), x * 10, y * 10 + 5);
+                font.draw(batch, Utils.format("%i", cost), x * scale, y * scale + 5);
             }
         }
         batch.end();
+    }
+
+    private Point toSim(Point p) {
+        return new Point(Math.floor((p.x) / scale), Math.floor((p.y) / scale));
     }
 
     private void reset() {
@@ -45,29 +53,54 @@ public class Pathfinder {
         }
 
         for (Entity t : map.towers) {
-            Point pos = t.getCenter();
-            cells[pos.x_div_10() * height + pos.y_div_10()] = 9999;
-            // Gdx.app.log("Pathfinder", "Tower at: " + pos.x_div_10() + ", " + pos.y_div_10());
+            Point pos = toSim(t.getPosition());
+            cells[pos.x_int() * height + pos.y_int()] = 9999;
+            //Gdx.app.log("Pathfinder", "Tower at: " + pos.toString());
         }
     }
 
-    public Vector2 getDirection(Point source, Point target) {
-        Point next = getNext(source, target);
+    public Vector2 getDirection(Point world_source, Point world_target) {
+        Point next = getNext(toSim(world_source), toSim(world_target));
+
+        Gdx.app.log(
+                "Pathfinder",
+                Utils.format("Find route from %f to %f:",
+                        world_source,
+                        world_target
+                        ));
+
         if (next == null)
             return new Vector2(0, 0);
         else {
-            return new Vector2(next.x - source.x_div_10(), next.y - source.y_div_10());
+            Vector2 v = new Vector2(next.x - toSim(world_source).x_int(), next.y - toSim(world_source).y_int());
+
+            Gdx.app.log(
+                    "Pathfinder",
+                    Utils.format("Go into direction %f.",
+                            v));
+
+             if(v.y == 0) {
+                 Gdx.app.log("Pathfinder:", world_source.toString("f"));
+                 //v.y = (float) (5 - (Math.floor(world_source.y / scale) * scale));
+                 v.y =
+                         (float) (( Math.floor(world_source.y / scale) * scale - world_source.y) * 0.1f);
+             }
+
+            return v;
         }
     }
 
-    public Point getNext(Point source, Point target) {
+    private Point getNext(Point sim_source, Point sim_target) {
         reset();
 
-        int sourceX = source.x_div_10();
-        int sourceY = source.y_div_10();
+        int sourceX = sim_source.x_int();
+        if (sourceX < 0) sourceX = 0;
 
-        int targetX = target.x_div_10();
-        int targetY = target.y_div_10();
+        int sourceY = sim_source.y_int();
+        if (sourceY < 0) sourceY = 0;
+
+        int targetX = sim_target.x_int();
+        int targetY = sim_target.y_int();
 
         if(cells[sourceX * height + sourceY] == 9999) {
             Gdx.app.log("Pathfinder", "Starting from block!!!");
@@ -76,30 +109,23 @@ public class Pathfinder {
         assign_cost(targetX, targetY, 0);
 
         Point nearest = get_next_path(sourceX, sourceY);
-        Gdx.app.log(
-                "Pathfinder",
-                String.format("Find route from (%s, %s) to (%s, %s)", sourceX, sourceY, targetX, targetY));
-
-        if (nearest.x == 12 && nearest.y == 9) {
-            Gdx.app.log(
-                    "Pathfinder",
-                    String.format("Move next to (%s, %s), which has cost %s",
-                            nearest.x,
-                            nearest.y,
-                            cells[(int) (nearest.x * height + nearest.y)]));
-        }
+        //Gdx.app.log(
+        //        "Pathfinder",
+        //        Utils.format("Find route from (%i, %i) to (%i, %i)", sourceX, sourceY, targetX, targetY));
 
         return nearest;
     }
 
-    public Array<Point> getPath(Point source, Point target) {
+    public Array<Point> getPath(Point world_source, Point world_target) {
         reset();
 
-        int sourceX = source.x_div_10();
-        int sourceY = source.y_div_10();
+        int sourceX = toSim(world_source).x_int();
+        if (sourceX < 0) sourceX = 0;
+        int sourceY = toSim(world_source).y_int();
+        if (sourceY < 0) sourceY = 0;
 
-        int targetX = target.x_div_10();
-        int targetY = target.y_div_10();
+        int targetX = toSim(world_target).x_int();
+        int targetY = toSim(world_target).y_int();
 
         assign_cost(targetX, targetY, 0);
 

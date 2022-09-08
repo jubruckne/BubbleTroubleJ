@@ -8,18 +8,13 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Tower extends Entity {
     public Tower(Map map, Vector2 position) {
-        super(map, position.x, position.y, 10, 10);
-        texture = map.game.Sprites.Tower();
+        this(map, position.x, position.y);
     }
 
     public Tower(Map map, float x, float y) {
         super(map, x, y, 10, 10);
         texture = map.game.Sprites.Tower();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Tower pos=(%s, %s)", this.getX(), this.getY());
+        debug = true;
     }
 
     public void draw(SpriteBatch batch) {
@@ -38,7 +33,7 @@ public class Tower extends Entity {
                     map.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
                     map.shapeRenderer.setColor(0.9f, 0.9f, 0.1f, 1f);
 
-                    map.shapeRenderer.line(getCenter(), e.getCenter());
+                    map.shapeRenderer.line(getPosition(), e.getPosition());
 
                     map.shapeRenderer.setColor(Color.WHITE);
                     map.shapeRenderer.end();
